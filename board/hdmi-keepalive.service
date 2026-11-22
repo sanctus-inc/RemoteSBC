@@ -1,0 +1,20 @@
+# Keep the HDMI display pipe running with nothing plugged in (or a capture card that drops
+# hot-plug while it is not capturing). With no active CRTC the X server paces Present clients
+# (xfwm4, GTK) with a 1-second timer, so every click and key reached the screen up to a second
+# late while the pointer, drawn apart, stayed smooth. The connector is given a 1920x1080 60 Hz
+# EDID (make_edid.py) and forced on before the display manager starts.
+[Unit]
+Description=Force HDMI-A-1 on with a 1080p EDID so X keeps a real vblank
+DefaultDependencies=no
+After=systemd-modules-load.service sys-kernel-debug.mount
+Before=display-manager.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStartPre=/bin/sh -c 'for i in $(seq 100); do [ -e /sys/kernel/debug/dri/0/HDMI-A-1/edid_override ] && exit 0; sleep 0.2; done; exit 1'
+ExecStart=/bin/sh -c 'cat /usr/local/lib/remotesbc/edid-1080p.bin > /sys/kernel/debug/dri/0/HDMI-A-1/edid_override && echo on > /sys/class/drm/card0-HDMI-A-1/status'
+ExecStop=/bin/sh -c 'echo detect > /sys/class/drm/card0-HDMI-A-1/status'
+
+[Install]
+WantedBy=multi-user.target

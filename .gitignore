@@ -1,0 +1,9 @@
+remotesbc
+board/screenserve
+probes/flip
+probes/mirror_check
+probes/vblank_rate
+board/*.bin
+*.log
+*.o
+.claude/
